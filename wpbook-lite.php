@@ -2,12 +2,12 @@
 /*
 Plugin Name: WPBook Lite
 Plugin URI: http://wpbook.net/
-Date: 2012, January 9th
+Date: 2012, January 29th
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.2.2
-Stable tag: 1.2.2
+Version: 1.2.3
+Stable tag: 1.2.3
 
 */
   
@@ -493,7 +493,7 @@ function wpbook_lite_meta_box() {
   checked('yes', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_yes">'.__('yes', 'wpbook').'</label> &nbsp;&nbsp;';
   echo '<input type="radio" name="wpbook_lite_fb_publish" id="wpbook_fb_publish_no" value="no" ';
-  checked('no', $wpbook_lite_publish, false);
+  checked('no', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_no">'.__('no', 'wpbook').'</label>';
   echo '</p>';
   do_action('wpbook_lite_store_post_options');
@@ -554,7 +554,10 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     foreach ($wpbookLiteOptions as $key => $option)
       $wpbookLiteAdminOptions[$key] = $option;
   }
-  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")){
+  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")
+	&& (is_object($comment))
+	&& (isset($comment->comment_author_email))
+	&& ($comment->comment_author_email == $wpbookLiteAdminOptions['imported_comments_email'])) {
     $author_url = get_comment_author_url();
     $email = get_comment_author_email();    
 	$size="50";
