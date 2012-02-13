@@ -2,12 +2,12 @@
 /*
 Plugin Name: WPBook Lite
 Plugin URI: http://wpbook.net/
-Date: 2012, January 9th
+Date: 2012, January 29th
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.2.2
-Stable tag: 1.2.2
+Version: 1.2.4
+Stable tag: 1.2.4
 
 */
   
@@ -493,7 +493,7 @@ function wpbook_lite_meta_box() {
   checked('yes', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_yes">'.__('yes', 'wpbook').'</label> &nbsp;&nbsp;';
   echo '<input type="radio" name="wpbook_lite_fb_publish" id="wpbook_fb_publish_no" value="no" ';
-  checked('no', $wpbook_lite_publish, false);
+  checked('no', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_no">'.__('no', 'wpbook').'</label>';
   echo '</p>';
   do_action('wpbook_lite_store_post_options');
@@ -554,7 +554,10 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     foreach ($wpbookLiteOptions as $key => $option)
       $wpbookLiteAdminOptions[$key] = $option;
   }
-  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")){
+  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")
+	&& (is_object($comment))
+	&& (isset($comment->comment_author_email))
+	&& ($comment->comment_author_email == $wpbookLiteAdminOptions['imported_comments_email'])) {
     $author_url = get_comment_author_url();
     $email = get_comment_author_email();    
 	$size="50";
@@ -621,21 +624,20 @@ function wpbook_parse_request($wp) {
 			}
 		$wpbookLiteAdminOptions['fb_api_key'] = $wpbookLiteOptions['fb_api_key'];
 		$wpbookLiteAdminOptions['fb_secret'] = $wpbookLiteOptions['fb_secret'];
-	  
-		// now we need to go get the token using curl
-      
-	  
+	  	  
 		$token_url = 'https://graph.facebook.com/oauth/access_token?client_id='
 		. htmlentities($wpbookLiteAdminOptions['fb_api_key']) . '&redirect_uri='
 		. home_url() .'/%3Fwpbook=oauth&client_secret=' . htmlentities($wpbookLiteAdminOptions['fb_secret']) 
-		. '&code=' . $_REQUEST["code"];      
-		// switched to raw php header redirect as $facebook->redirect was
-		// problematic and no fb session needed in this page
-		$response = @file_get_contents($token_url);
-		$params = null;
-		parse_str($response, $params);
-		update_option('wpbook_lite_user_access_token',$params['access_token']);
-		echo "Done - access token captured";
+		. '&code=' . $_REQUEST["code"];
+		// using wp_remote_request should support multiple capabilities
+		$response = wp_remote_request($token_url);
+		if( strpos($response['body'],'access_token=') !== false) {
+			$my_at = substr($response['body'],strpos($response['body'],'access_token=')+14);
+			update_option('wpbook_lite_user_access_token',$my_at);
+			echo "Succeeded in saving Access Token";
+		} else {
+			echo "Failed in creating access token"; 
+		}
 	 }
     }
   }
