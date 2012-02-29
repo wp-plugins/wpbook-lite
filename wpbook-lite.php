@@ -2,12 +2,12 @@
 /*
 Plugin Name: WPBook Lite
 Plugin URI: http://wpbook.net/
-Date: 2012, January 9th
+Date: 2012, February 29th
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.2.2
-Stable tag: 1.2.2
+Version: 1.2.6
+Stable tag: 1.2.6
 
 */
   
@@ -281,24 +281,24 @@ function wpbook_lite_subpanel() {
                               )
 							);
       } catch (FacebookApiException $e) {
-		echo '<p>Unable to access Facebook API - app id or secret may be wrong.</p>';
+		echo '--> <p>Unable to access Facebook API - app id or secret may be wrong.</p> <!-- ';
 		$wpbook_lite_fb_error = true;
 	  }
 	  if($wpbook_lite_fb_error == false) {
 		try {
 			$facebook->setAccessToken($access_token);
 		} catch (FacebookAPIException $e) {
-			echo '<p>Could not set access token. ' . $e->getMessage() .'Error code: '. $e->getCode()  .'</p>';
+			echo '--> <p>Could not set access token. ' . $e->getMessage() .'Error code: '. $e->getCode()  .'</p> <!-- ';
 		}
 		try {
 			$uid = $facebook->getUser();
 		} catch (FacebookAPIException $e) {
-			echo '<p>Could not get userid from Facebook. ' . $e->getMessage() .'Error code: '. $e->getCode()    .'</p>';
+			echo '--> <p>Could not get userid from Facebook. ' . $e->getMessage() .'Error code: '. $e->getCode()    .'</p><!-- ';
 		}
 		try {
 			$fb_response = $facebook->api('/'. $uid .'/accounts'); 
 		} catch (FacebookAPIException $e) {
-			echo '<p>Could not get accounts list from Facebook. ' . $e->getMessage() .'Error code: '. $e->getCode()    .'</p>';
+			echo '--> <p>Could not get accounts list from Facebook. ' . $e->getMessage() .'Error code: '. $e->getCode()    .'</p><!-- ';
 			$fb_response = false; 
 		}	
 		echo " end hiding -->";	
@@ -456,7 +456,7 @@ echo '<p><input type="submit" value="Save" class="button-primary"';
       echo'<div id="help">';
       echo '<h2>Need Help?</h2>';
       echo '<p>If you need help setting up this application first read the <a href="http://wpbook.net/docs/install" target="_blank"> install instructions</a>.';
-      echo 'Support can also be found on <a href="http://wordpress.org/extend/plugins/wpbook/" target="_blank">the plugin page</a> </p><h3>Thanks for using WPBook!</h3>';
+      echo 'Support can also be found on <a href="http://wordpress.org/extend/plugins/wpbook-lite/" target="_blank">the plugin page</a> </p><h3>Thanks for using WPBook Lite!</h3>';
       echo'</div>';
   } else {
     echo '<div class="wrap"><p>Sorry, you are not allowed to access ';
@@ -493,7 +493,7 @@ function wpbook_lite_meta_box() {
   checked('yes', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_yes">'.__('yes', 'wpbook').'</label> &nbsp;&nbsp;';
   echo '<input type="radio" name="wpbook_lite_fb_publish" id="wpbook_fb_publish_no" value="no" ';
-  checked('no', $wpbook_lite_publish, false);
+  checked('no', $wpbook_lite_publish, true);
   echo ' /> <label for="wpbook_fb_publish_no">'.__('no', 'wpbook').'</label>';
   echo '</p>';
   do_action('wpbook_lite_store_post_options');
@@ -554,7 +554,10 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     foreach ($wpbookLiteOptions as $key => $option)
       $wpbookLiteAdminOptions[$key] = $option;
   }
-  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")){
+  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")
+	&& (is_object($comment))
+	&& (isset($comment->comment_author_email))
+	&& ($comment->comment_author_email == $wpbookLiteAdminOptions['imported_comments_email'])) {
     $author_url = get_comment_author_url();
     $email = get_comment_author_email();    
 	$size="50";
@@ -621,21 +624,35 @@ function wpbook_parse_request($wp) {
 			}
 		$wpbookLiteAdminOptions['fb_api_key'] = $wpbookLiteOptions['fb_api_key'];
 		$wpbookLiteAdminOptions['fb_secret'] = $wpbookLiteOptions['fb_secret'];
-	  
-		// now we need to go get the token using curl
-      
-	  
+	  	  
 		$token_url = 'https://graph.facebook.com/oauth/access_token?client_id='
 		. htmlentities($wpbookLiteAdminOptions['fb_api_key']) . '&redirect_uri='
 		. home_url() .'/%3Fwpbook=oauth&client_secret=' . htmlentities($wpbookLiteAdminOptions['fb_secret']) 
-		. '&code=' . $_REQUEST["code"];      
-		// switched to raw php header redirect as $facebook->redirect was
-		// problematic and no fb session needed in this page
-		$response = @file_get_contents($token_url);
-		$params = null;
-		parse_str($response, $params);
-		update_option('wpbook_lite_user_access_token',$params['access_token']);
-		echo "Done - access token captured";
+		. '&code=' . $_REQUEST["code"];
+		// using wp_remote_request should support multiple capabilities
+		$response = wp_remote_request($token_url);
+		if( is_wp_error($response)) {
+			echo "WP Error occured in trying to get token:\n";
+			echo "Token url was " . $token_url . "\n";
+			echo "WP Error is " . $response->get_error_message(); 
+			die(); 
+		}
+		if(strpos($response['body'],'access_token=') !== false) {
+			$my_at = substr($response['body'],strpos($response['body'],'access_token=')+13);
+			update_option('wpbook_lite_user_access_token',$my_at);
+			echo "Succeeded in saving Access Token\n";
+			echo '<a href="'. get_bloginfo('home') .'">Return to your blog</a>';
+		} else {
+			echo "Failed in creating access token\n"; 
+			echo "Response was: \n";
+			if (is_array($response)) {
+				echo print_r($response,true);
+			} else {
+				echo $response; 
+			}
+			echo '<a href="'. get_bloginfo('home') .'">Return to your blog</a>';
+		}
+		die(); 
 	 }
     }
   }
@@ -675,6 +692,9 @@ add_action('future_to_publish','wpbook_lite_publish_to_facebook');
 add_action('new_to_publish','wpbook_lite_publish_to_facebook');
 add_action('draft_to_publish','wpbook_lite_publish_to_facebook');  
 add_action('pending_to_publish','wpbook_lite_publish_to_facebook');
+// for windows live writer and other XML-RPC clients
+add_action('auto-draft_to_publish','wpbook_lite_publish_to_facebook');
+
   
 // cron job task  
 add_action('wpbook_lite_cron_job', 'wpbook_lite_import_comments');

@@ -1,8 +1,8 @@
 === WPBook Lite ===
 Contributors: johneckman
 Tags: facebook, platform, application, blog, mirror
-Stable tag: 1.2.2
-Tested up to: 3.3
+Stable tag: 1.2.6
+Tested up to: 3.3.1
 Requires at least: 2.9
 
 Based on wpbook ( http://wordpress.org/extend/plugins/wbook/ ), 
@@ -49,6 +49,27 @@ This plugin requires PHP 5.
 
 
 == Changelog ==
+
+= 1.2.6 = 
+* Added 'auto-draft-to-publish' post transition state, to better support posts
+  created by XML-RPC clients, including Windows Live Writer
+* Cleaned up debugging output and simplified logic for try/catch blocks 
+  around the calls to the Facebook API throughout the Facebook publish process. 
+* Added check for WP_error object returned to wp_remote_request when fetching
+  access token. 
+* Update support link on settings page to point to the forum for wpbook-lite not
+  the existing forum for wp-book
+  
+= 1.2.5 =
+* Fixed bug in access_token capture, exposued more debug info to WPBook Lite
+  settings page. 
+
+= 1.2.4 =
+* Update mechanism for capturing access_token to work on sites where fopen
+  is not allowed, using wp_remote_request. 
+
+= 1.2.3 = 
+ * Restrict global filter on gravatars to only comments
 
 = 1.2.2 =
 * Wrap try/catch blocks around Facebook permission calls in admin page -
