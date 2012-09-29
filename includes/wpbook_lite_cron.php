@@ -118,41 +118,6 @@ function wpbook_lite_import_comments() {
 	update_option('wpbook_lite_user_access_token','invalid');
 	die(); 
   }
-
-  if(WPBOOKDEBUG) {
-      $fp = @fopen($debug_file, 'a');
-      $debug_string=date("Y-m-d H:i:s",time())." : response is ". $response ."\n";
-      fwrite($fp, $debug_string);
-    }
-  $decoded_response = json_decode($response);
-  if(WPBOOKDEBUG) {
-      $fp = @fopen($debug_file, 'a');
-      $debug_string=date("Y-m-d H:i:s",time())." : error type is ". $decoded_response->error->type ."\n";
-      $debug_string .= date("Y-m-d H:i:s",time())." : error message is ". $decoded_response->error->message ."\n";
-      fwrite($fp, $debug_string);
-    }
-  if ($decoded_response->error) {
-	if ($decoded_response->error->type== "OAuthException") {
-		// error occured
-		if(WPBOOKDEBUG) {
-			$fp = @fopen($debug_file, 'a');
-			$debug_string=date("Y-m-d H:i:s",time())." : OAuth Exception access token\n";
-			$debug_string .= "Error was " . $decoded_response->error->message ."\n"; 
-			fwrite($fp, $debug_string);
-		}
-		update_option('wpbook_lite_user_access_token','invalid'); // flag token	
-		return; // no use continuing	
-	} else {
-		// some other error occured
-		if(WPBOOKDEBUG) {
-			$fp = @fopen($debug_file, 'a');
-			$debug_string=date("Y-m-d H:i:s",time())." : Other error with access token\n";
-			$debug_string .= "Error was " . $decoded_response->error->message . "\n";
-			fwrite($fp, $debug_string);
-		}
-		return; // no use continuing	
-	}
-  } 
  
   if ($wpbookLiteAdminOptions['approve_imported_comments'] == 1) {
     $wpbook_comment_approval = 1;
@@ -267,7 +232,7 @@ function wpbook_lite_import_comments() {
             if(WPBOOKDEBUG) {
               $fp = @fopen($debug_file, 'a');
               $debug_string=date("Y-m-d H:i:s",time())." : Number of comments for this post- " . count($fbcommentslist) . " \n";
-              $degub_string .= print_r($fbcommentslist);
+              $debug_string .= print_r($fbcommentslist);
               fwrite($fp, $debug_string);
             }
             foreach ($fbcommentslist as $comment) {
