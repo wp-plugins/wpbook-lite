@@ -2,7 +2,7 @@
 Contributors: johneckman
 Tags: facebook, platform, application, blog, mirror
 Requires at least: 2.9
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 Tested up to: 3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -52,6 +52,12 @@ This plugin requires PHP 5.
 
 
 == Changelog ==
+
+= 1.5.4 =
+* When granting a new access token, get the short-term one and then immediately 
+  exchange for a 2 month long-lived one. 
+* Clean up hard coded wp-admin url
+
 = 1.5.3 =
 * Fixed typo in wpbook_lite_cron where it had degub instead of debug - thanks
   to jeff in wpbook_lite support forum for noting it
@@ -64,11 +70,21 @@ This plugin requires PHP 5.
 * Fixed undefined $response variable in wpbook_cron - threw warnings when 
   run, may have interfered with comment import. 
 
+* Fixed undefined $response variable in wpbook_cron - threw warnings when 
+  run, may have interfered with comment import. 
+
+* Fixed undefined $response variable in wpbook_cron - threw warnings when 
+  run, may have interfered with comment import. 
+
 = 1.5 = 
 * Fixed error introduced somewhere around 1.4.1 involving storing access tokens
   for long-lived tokens. Wasn't properly storing full length of token which 
   cause this to fail for some users. 
   
+* Fixed bad define() statement for setting WPBOOKDEBUG to false if the file
+  handler fp comes back not writeable. This resulted in warnings being thrown
+  for users whose permissions did not allow writing to the file system. 
+
 * Fixed bad define() statement for setting WPBOOKDEBUG to false if the file
   handler fp comes back not writeable. This resulted in warnings being thrown
   for users whose permissions did not allow writing to the file system. 
