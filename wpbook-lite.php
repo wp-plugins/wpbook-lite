@@ -2,12 +2,11 @@
 /*
 Plugin Name: WPBook Lite
 Plugin URI: http://wpbook.net/
-Date: 2012, September 29th
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.5.5
-Stable tag: 1.5.5
+Version: 1.6
+Stable tag: 1.6
 
 */
   
@@ -311,7 +310,7 @@ function wpbook_lite_subpanel() {
 		<p>You have to grant permissions now, so that the Facebook application you've just created can access
 		your personal profile and post on your behalf.</p>
 		
-		<P><a href="https://www.facebook.com/dialog/oauth?client_id=<?php echo htmlentities($wpbookLiteAdminOptions['fb_api_key']); ?>&redirect_uri=<?php echo home_url(); ?>/%3Fwpbook=oauth&scope=read_stream,publish_stream,manage_pages,user_groups">Generate Access Token</a></p>
+		<P><a href="https://www.facebook.com/dialog/oauth?client_id=<?php echo htmlentities($wpbookLiteAdminOptions['fb_api_key']); ?>&redirect_uri=<?php echo home_url(); ?>/%3Fwpbook=oauth&scope=read_stream,publish_actions,manage_pages,user_groups">Generate Access Token</a></p>
 	 
 		<p>That will trigger a multiple step process which will generate an access token and store it - you should see your blog home 
 		page load with a message at the top declaring success or offering an error. Revisit this page and you should see the access code stored below: </p>
@@ -628,7 +627,7 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     $email = get_comment_author_email();    
 	$size="50";
     $parse_author_url = (parse_url($author_url));
-    if(preg_match("@^(?:http://)?(?:www\.)?facebook@i",trim($author_url))){
+    if(preg_match("@^(?:https://)?(?:www\.)?facebook@i",trim($author_url))){
       $parse_author_url_q = $parse_author_url['query'];
       if(preg_match('/id[=]([0-9]*)/', $parse_author_url_q, $match)){
         $fb_id = "/".$match[1];
@@ -647,7 +646,7 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
           $fb_id = $parse_author_url['path'];
         }
       }
-      $grav_url= "http://graph.facebook.com".$fb_id."/picture?type=square";
+      $grav_url= "https://graph.facebook.com".$fb_id."/picture?type=square";
     }
     else {
       $grav_url = "http://www.gravatar.com/avatar/" . md5(strtolower($email))."?s=".$size;

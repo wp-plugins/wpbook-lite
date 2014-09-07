@@ -36,7 +36,11 @@ function wpbook_lite_safe_publish_to_facebook($post_ID) {
 		Facebook::$CURL_OPTS[CURLOPT_SSL_VERIFYHOST] = 2;
 	}
   
-	$facebook = new Facebook($api_key, $secret);
+	$facebook = new Facebook(array(
+                              'appId'  => $api_key,
+                              'secret' => $secret,						  
+                                  )
+                            );
 	$wpbook_user_access_token = get_option('wpbook_lite_user_access_token','');
 	$wpbook_page_access_token = get_option('wpbook_lite_page_access_token','');
   
@@ -70,12 +74,12 @@ function wpbook_lite_safe_publish_to_facebook($post_ID) {
 		} // end if debug
 	}  // end try-catch
 
-	// this is just to validate the access token	
+	// this is just to validate the access token - with php SDK 3.2.3 this fails on appsecret_proof being invalid	
 	try {
 		$facebook->api('/me','GET');
 	} catch (FacebookApiException $e) {
 		if(WPBOOKDEBUG) {
-			$wpbook_message = 'Caught exception with access token: ' .  $e->getMessage() .'Error code: '. $e->getCode();  
+			$wpbook_message = 'Caught exception with access token: ' .  $e->getMessage() .' Error code: '. $e->getCode();  
 			$fp = @fopen($debug_file, 'a');
 			$debug_string=date("Y-m-d H:i:s",time())." :". $wpbook_message  ."\n";
 			fwrite($fp, $debug_string);
@@ -427,16 +431,6 @@ function wpbook_lite_safe_publish_to_facebook($post_ID) {
 				$debug_string=date("Y-m-d H:i:s",time())." : Publishing to page " . $target_page  ."\n";
 				fwrite($fp, $debug_string);
 			}
-            //try {
-			//	$facebook->api('/me/accounts/','GET');
-			//} catch (FacebookApiException $e) {
-			//	if($wpbook_show_errors) {
-			//		$wpbook_message = 'Caught exception for page access token: ' .  $e->getMessage() .'Error code: '. $e->getCode();  
-			//		wp_die($wpbook_message,'WPBook Error');
-			//	} // end if for show errors
-			//} // end try-catch
-					
-			// post as an excerpt
 			if(!empty($my_image)) {
 				/* message, picture, link, name, caption, description, source */      
 				$attachment = array( 
