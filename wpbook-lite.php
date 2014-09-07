@@ -1,13 +1,12 @@
-<?php
+﻿<?php
 /*
 Plugin Name: WPBook Lite
 Plugin URI: http://wpbook.net/
-Date: 2012, September 29th
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.5.4
-Stable tag: 1.5.4
+Version: 1.6.1
+Stable tag: 1.6.1
 
 */
   
@@ -70,11 +69,13 @@ function wpbook_lite_getAdminOptions() {
 	if (!empty($wpbookLiteOptions)) {
 		foreach ($wpbookLiteOptions as $key => $option)
 			$wpbookLiteAdminOptions[$key] = $option;
-		if ($_SERVER['HTTPS'] == "on") { 
+		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") { 
 		    $wpbookLiteAdminOptions['proto'] = "https"; 
 		} else {
 		    $wpbookLiteAdminOptions['proto'] = "http";
 		}  
+	} else {
+		$wpbookLiteAdminOptions = ''; 
 	}
 	return $wpbookLiteAdminOptions;
 }
@@ -146,29 +147,85 @@ function wpbook_lite_subpanel() {
       $fb_api_key = preg_replace("#[^0-9]#", "",$_POST['fb_api_key']);
       $fb_secret = $_POST['fb_secret'];
       $fb_admin_target = preg_replace("#[^0-9]#", "",$_POST['fb_admin_target']);
-      $fb_page_target = preg_replace("#[^0-9]#", "",$_POST['fb_page_target']);
-      $show_advanced_options = $_POST['show_advanced_options'];
-      $stream_publish = $_POST['stream_publish'];  
-      $stream_publish_pages = $_POST['stream_publish_pages'];
-      $show_errors = $_POST['show_errors'];  
-      $import_comments = $_POST['import_comments'];
-      $approve_imported_comments = $_POST['approve_imported_comments'];
-      $num_days_import = preg_replace("#[^0-9]#", "",$_POST['num_days_import']);  
-      $imported_comments_email = $_POST['imported_comments_email'];  
-      $infinite_session_key = $_POST['infinite_session_key']; 
-      $wpbook_enable_debug = $_POST['wpbook_enable_debug'];
+      if(isset($_POST['fb_page_target'])) {
+      	$fb_page_target = preg_replace("#[^0-9]#", "",$_POST['fb_page_target']);
+      } else {
+      	$fb_page_target = '';
+      }
+      if(isset($_POST['show_advanced_options'])) {
+      	$show_advanced_options = $_POST['show_advanced_options'];
+      } else {
+      	$show_advanced_options = ''; 
+      }
+      if(isset($_POST['stream_publish'])) {
+      	$stream_publish = $_POST['stream_publish'];  
+      } else {
+      	$stream_publish = ''; 
+      }
+      if(isset($_POST['stream_publish_pages'])) {
+      	$stream_publish_pages = $_POST['stream_publish_pages'];
+      } else {
+      	$stream_publish_pages = ''; 
+      }
+      if(isset($_POST['show_errors'])) {
+      	$show_errors = $_POST['show_errors']; 
+      } else {
+      	$show_errors = ''; 
+      }
+      if(isset($_POST['import_comments'])) {
+      	$import_comments = $_POST['import_comments'];
+      } else {
+      	$import_comments = ''; 
+      }
+      if(isset($_POST['approve_imported_comments'])) {
+      	$approve_imported_comments = $_POST['approve_imported_comments'];
+      } else {
+      	$approve_imported_comments = ''; 
+      }
+      if(isset($_POST['approve_imported_comments'])) {
+      	$num_days_import = preg_replace("#[^0-9]#", "",$_POST['num_days_import']);  
+      } else {
+      	$num_days_import = ''; 
+      }
+      if(isset($_POST['imported_comments_email'])) {
+      	$imported_comments_email = $_POST['imported_comments_email']; 
+      } else {
+      	$imported_comments_email = ''; 
+      } 
+      if(isset($_POST['infinite_session_key'])) {
+      	$infinite_session_key = $_POST['infinite_session_key']; 
+      } else {
+      	$infinite_session_key = ''; 
+      } 
+      if(isset($_POST['wpbook_enable_debug'])) {
+      	$wpbook_enable_debug = $_POST['wpbook_enable_debug'];
+      } else {
+      	$wpbook_enable_debug = ''; 
+      }
 	  $wpbook_as_note = 'post'; // default to post type of POST unless otherwise set
-			if($_POST['post_as']=='note')
+			if(isset($_POST['post_as']) && $_POST['post_as']=='note')
 				$wpbook_as_note = 'note';
-			if($_POST['post_as']=='link')
+			if(isset($_POST['post_as']) && $_POST['post_as']=='link')
 				$wpbook_as_note = 'link';      
 	  $wpbook_as_link = 'post';
-		if($_POST['page_post_as'] == 'link')
+		if(isset($_POST['[page_post_as']) && $_POST['page_post_as'] == 'link')
 			$wpbook_as_link = 'link';
 				
-	  $wpbook_target_group = $_POST['wpbook_target_group'];
-      $wpbook_disable_sslverify = $_POST['wpbook_disable_sslverify'];
-      $wpbook_use_global_gravatar = $_POST['wpbook_use_global_gravatar'];
+	  if(isset($_POST['wpbook_target_group'])) {
+	  	$wpbook_target_group = $_POST['wpbook_target_group'];
+	  } else {
+	  	$wpbook_target_group = ''; 
+	  }
+      if(isset($_POST['wpbook_disable_sslverify'])) {
+      	$wpbook_disable_sslverify = $_POST['wpbook_disable_sslverify'];
+      } else {
+      	$wpbook_disable_sslverify = ''; 
+      }
+      if(isset($_POST['wpbook_use_global_gravatar'])) {
+      	$wpbook_use_global_gravatar = $_POST['wpbook_use_global_gravatar'];
+      } else {
+      	$wpbook_use_global_gravatar = '';
+      }
       setAdminOptions(1, $fb_api_key, $fb_secret,$fb_admin_target,$fb_page_target,
                     $show_advanced_options,$stream_publish,
                     $stream_publish_pages,$show_errors,
@@ -253,7 +310,7 @@ function wpbook_lite_subpanel() {
 		<p>You have to grant permissions now, so that the Facebook application you've just created can access
 		your personal profile and post on your behalf.</p>
 		
-		<P><a href="https://www.facebook.com/dialog/oauth?client_id=<?php echo htmlentities($wpbookLiteAdminOptions['fb_api_key']); ?>&redirect_uri=<?php echo home_url(); ?>/%3Fwpbook=oauth&scope=read_stream,publish_stream,manage_pages,user_groups">Generate Access Token</a></p>
+		<P><a href="https://www.facebook.com/dialog/oauth?client_id=<?php echo htmlentities($wpbookLiteAdminOptions['fb_api_key']); ?>&redirect_uri=<?php echo home_url(); ?>/%3Fwpbook=oauth&scope=read_stream,publish_actions,manage_pages,user_groups">Generate Access Token</a></p>
 	 
 		<p>That will trigger a multiple step process which will generate an access token and store it - you should see your blog home 
 		page load with a message at the top declaring success or offering an error. Revisit this page and you should see the access code stored below: </p>
@@ -561,7 +618,8 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     foreach ($wpbookLiteOptions as $key => $option)
       $wpbookLiteAdminOptions[$key] = $option;
   }
-  if(($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")
+  if(isset($wpbookLiteAdminOptions['wpbook_use_global_gravatar'])
+  	&& ($wpbookLiteAdminOptions['wpbook_use_global_gravatar'] =="true")
 	&& (is_object($comment))
 	&& (isset($comment->comment_author_email))
 	&& ($comment->comment_author_email == $wpbookLiteAdminOptions['imported_comments_email'])) {
@@ -569,7 +627,7 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
     $email = get_comment_author_email();    
 	$size="50";
     $parse_author_url = (parse_url($author_url));
-    if(preg_match("@^(?:http://)?(?:www\.)?facebook@i",trim($author_url))){
+    if(preg_match("@^(?:https://)?(?:www\.)?facebook@i",trim($author_url))){
       $parse_author_url_q = $parse_author_url['query'];
       if(preg_match('/id[=]([0-9]*)/', $parse_author_url_q, $match)){
         $fb_id = "/".$match[1];
@@ -588,7 +646,7 @@ function wpbook_lite_get_global_facebook_avatar($avatar, $comment, $size="50") {
           $fb_id = $parse_author_url['path'];
         }
       }
-      $grav_url= "http://graph.facebook.com".$fb_id."/picture?type=square";
+      $grav_url= "https://graph.facebook.com".$fb_id."/picture?type=square";
     }
     else {
       $grav_url = "http://www.gravatar.com/avatar/" . md5(strtolower($email))."?s=".$size;
