@@ -2,7 +2,7 @@
 Contributors: johneckman
 Tags: facebook, platform, application, blog, mirror
 Requires at least: 2.9
-Stable tag: 1.6
+Stable tag: 1.6.1
 Tested up to: 4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -28,9 +28,6 @@ instead - both are free.
 
 This plugin requires PHP 5. 
 
-NOTE: Upgrade from 1.5.4 to 1.6 may require you to recreate your access token. Just
-visit the WPBook Lite settings page and click on Generate Access Token. 
-
 == Installation ==
 
 1. Copy the entire wpbook-lite directory into your wordpress plugins folder,
@@ -55,6 +52,10 @@ visit the WPBook Lite settings page and click on Generate Access Token.
 
 
 == Changelog ==
+
+= 1.6.1 = 
+* Changes to the API changed format for timestamps, which through for a loop the 
+  logic for checking when comments are new. 
 
 = 1.6 = 
 * Updated Facebook PHP SDK to 3.2.3. Would like to get to 4.0 at some point
