@@ -2,8 +2,8 @@
 Contributors: johneckman
 Tags: facebook, platform, application, blog, mirror
 Requires at least: 2.9
-Stable tag: 1.5.4
-Tested up to: 3.4
+Stable tag: 1.6.2
+Tested up to: 4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,30 @@ This plugin requires PHP 5.
 
 
 == Changelog ==
+
+= 1.6.2 =
+* Somehow encoding on the main wpbook-lite.php file was UTF-8 with a BOM - this
+  triggers extra characters of output on activation. 
+  
+= 1.6.1 = 
+* Changes to the API changed format for timestamps, which through for a loop the 
+  logic for checking when comments are new. 
+
+= 1.6 = 
+* Updated Facebook PHP SDK to 3.2.3. Would like to get to 4.0 at some point
+  but that requires PHP 5.4 where WordPress only requires 5.2.4 - don't want 
+  to get too far ahead. 
+* Updated publish_to_facebook to use appropriate appsecret_proof
+* Updated the base_facebook class to use v2.1 of the graph API. (New apps
+  created on Facebook can no longer use v1 of the API, which is what gets
+  used if you don't pass a version - so I have to pass a version, so lets
+  use 2.1. 
+* Rewrote comment import to not use FQL as that is not supported in new
+  Facebook apps using v2 or later of the API
+* Ask for publish_actions not publish_stream - deprecated API functions. This will
+  probably mean people will need to regenerate their access tokens, but it works. 
+* Use https for Facebook avatars outside facebook setting - should make that
+  work again even for those for whom it wasn't
 
 = 1.5.4 =
 * When granting a new access token, get the short-term one and then immediately 
