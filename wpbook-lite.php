@@ -5,8 +5,8 @@ Plugin URI: http://wpbook.net/
 Description: Plugin to cross post Wordpress Blog posts to Facebook. 
 Author: John Eckman
 Author URI: http://johneckman.com
-Version: 1.6.2
-Stable tag: 1.6.2
+Version: 1.6.5
+Stable tag: 1.6.5
 
 */
   
@@ -143,7 +143,8 @@ function wpbook_lite_subpanel() {
     global $current_user;
     get_currentuserinfo(); 
     $wpbookLiteAdminOptions = wpbook_lite_getAdminOptions();
-    if (isset($_POST['fb_api_key']) && isset($_POST['fb_secret']) && isset($_POST['fb_admin_target']) ) { 
+    if ( ! empty( $_POST ) && check_admin_referer( 'update_settings', 'wpbook_lite_admin_nonce') 
+      	&& isset($_POST['fb_api_key']) && isset($_POST['fb_secret']) && isset($_POST['fb_admin_target']) ) { 
       $fb_api_key = preg_replace("#[^0-9]#", "",$_POST['fb_api_key']);
       $fb_secret = $_POST['fb_secret'];
       $fb_admin_target = preg_replace("#[^0-9]#", "",$_POST['fb_admin_target']);
@@ -208,7 +209,7 @@ function wpbook_lite_subpanel() {
 			if(isset($_POST['post_as']) && $_POST['post_as']=='link')
 				$wpbook_as_note = 'link';      
 	  $wpbook_as_link = 'post';
-		if(isset($_POST['[page_post_as']) && $_POST['page_post_as'] == 'link')
+		if(isset($_POST['page_post_as']) && $_POST['page_post_as'] == 'link')
 			$wpbook_as_link = 'link';
 				
 	  if(isset($_POST['wpbook_target_group'])) {
@@ -235,18 +236,21 @@ function wpbook_lite_subpanel() {
                     $wpbook_use_global_gravatar,$wpbook_as_note,$wpbook_as_link,
                     $wpbook_target_group,$wpbook_disable_sslverify);
       $flash = "Your settings have been saved. ";
-    } elseif (($wpbookLiteAdminOptions['fb_api_key'] != "") && ($wpbookLiteAdminOptions['fb_secret'] != "") && ($wpbookLiteAdminOptions['fb_admin_target'] != "")){
+    } elseif ((isset($wpbookLiteAdminOptions['fb_api_key'])) && ($wpbookLiteAdminOptions['fb_api_key'] != "") && (isset($wpbookLiteAdminOptions['fb_secret'])) && ($wpbookLiteAdminOptions['fb_secret'] != "") && ($wpbookLiteAdminOptions['fb_admin_target'] != "")){
       $flash = "";
+    } elseif (! empty( $_POST ) && ! check_admin_referer( 'update_settings', 'wpbook_lite_admin_nonce')) {
+      $flash = "Admin nonce failed";
     } else {
-      $flash = "Please complete all necessary fields";}
-    } else {
-      $flash = "You don't have enough access rights.";
-    }   
+      $flash = "Please complete all necessary fields";
+    } // end of if posting
+  } else {
+    $flash = "You don't have enough access rights.";
+  } // end of first if wpbook_lite_is_authorized() 
   
     if (wpbook_lite_is_authorized()) {
       $wpbookLiteAdminOptions = wpbook_lite_getAdminOptions();
       //set the "smart" defaults on install this only works once the page has been refeshed
-      if ($wpbookLiteAdminOptions['wpbook_installation'] != 1) {  
+      if ((isset($wpbookLiteAdminOptions['wpbook_installation'])) && ($wpbookLiteAdminOptions['wpbook_installation'] != 1)) {  
         setAdminOptions(1,null,null,null,null,false,
                         false,false,false,false,false,7,"facebook@openparenthesis.org",
 						null,false,false,false,null,null,false);
@@ -281,17 +285,26 @@ function wpbook_lite_subpanel() {
 	<?php 
       echo '<form action="'. $_SERVER["REQUEST_URI"] .'" method="post">'; 
       echo '<p>Facebook App ID: <input type="text" name="fb_api_key" value="';
-	  echo htmlentities($wpbookLiteAdminOptions['fb_api_key']) .'" size="35" />';
-      if(!empty($wpbookLiteAdminOptions['fb_api_key'])) {
+	  if(isset($wpbookLiteAdminOptions['fb_api_key'])) {
+	  	echo htmlentities($wpbookLiteAdminOptions['fb_api_key']);
+	  }
+	  echo '" size="35" />';
+      if((isset($wpbookLiteAdminOptions['fb_api_key'])) && (!empty($wpbookLiteAdminOptions['fb_api_key']))) {
 		echo ' <a href="http://www.facebook.com/apps/application.php?id=' . $wpbookLiteAdminOptions['fb_api_key'] . '" target="_new"> Visit this app profile</a>';
       }
       echo '</p>';
       echo '<p>Facebook App Secret: ';
       echo '<input type="text" name="fb_secret" value="';
-      echo htmlentities($wpbookLiteAdminOptions['fb_secret']) .'" size="35" /></p>';
+      if(isset($wpbookLiteAdminOptions['fb_secret'])) {
+      	echo htmlentities($wpbookLiteAdminOptions['fb_secret']);
+      }
+      echo '" size="35" /></p>';
       echo '<p>YOUR Facebook Profile ID: <input type="text" name="fb_admin_target" value="';
-      echo preg_replace("#[^0-9]#","",htmlentities($wpbookLiteAdminOptions['fb_admin_target'])) .'" size="15" />';
-      if(!empty($wpbookLiteAdminOptions['fb_admin_target'])) {
+      if(isset($wpbookLiteAdminOptions['fb_admin_target'])) {
+      	echo preg_replace("#[^0-9]#","",htmlentities($wpbookLiteAdminOptions['fb_admin_target']));
+      }
+      echo '" size="15" />';
+      if(isset($wpbookLiteAdminOptions['fb_admin_target']) && !empty($wpbookLiteAdminOptions['fb_admin_target'])) {
         echo ' <a href="http://www.facebook.com/profile.php?id=' . $wpbookLiteAdminOptions['fb_admin_target'] . '" target="_new">visit this profile</a>';
       }
       
@@ -506,7 +519,8 @@ echo '<p class="wpbook_hidden wpbook_option_set_2 sub_options">Page ID: <input t
       ?>
 	
 <?php 
-echo '<p><input type="submit" value="Save" class="button-primary"';
+	  wp_nonce_field( 'update_settings', 'wpbook_lite_admin_nonce' );
+	  echo '<p><input type="submit" value="Save" class="button-primary"';
       echo ' name="wpbook_save_button" /></form></p>';
       echo'<div id="help">';
       echo '<h2>Need Help?</h2>';
